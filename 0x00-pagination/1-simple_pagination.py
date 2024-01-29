@@ -1,84 +1,45 @@
 #!/usr/bin/env python3
 """
-Defines class Server that paginates a database of popular baby names
+1-simple_pagination.py
 """
 import csv
 import math
-from typing import List, Tuple
+from typing import List
 
 
-def index_range(page: int, page_size: int) -> Tuple[int, int]:
+def index_range(page: int, page_size: int) -> tuple:
     """
-    Calculates the start and end indices for a given page and page size in a paginated list.
-
-    Args:
-        page (int): The page number to return (pages are 1-indexed).
-        page_size (int): The number of items per page.
-
-    Returns:
-        Tuple[int, int]: A tuple containing the start and end indices of the range.
-
+    Return a tuple of size two containing a start index and an end index
     """
+    next_page: int = page * page_size
+    prev_page: int = next_page - page_size
+    return (prev_page, next_page)
 
-    # Calculate the start and end indices for the given page and page size
-    start_index = 0  # The start index of the range
-    end_index = 0  # The end index of the range
-
-    # Iterate over each page to calculate the indices
-    for current_page in range(page):
-        start_index = end_index  # Update the start index to be the previous end index
-        end_index += page_size  # Increment the end index by the page size to move the range
-
-    # Return the calculated start and end indices as a tuple
-    return (start_index, end_index)
 
 class Server:
-    """
-    Server class that paginates a database of popular baby names.
-    """
+    """Server class to paginate a database of popular baby names."""
 
     DATA_FILE = "Popular_Baby_Names.csv"
 
     def __init__(self):
-        self._dataset = None
+        """Initialize"""
+        self.__dataset = None
 
-    def _load_dataset(self) -> List[List]:
-        """
-        Loads the dataset from a CSV file and caches it.
-
-        Returns:
-            List[List]: The loaded dataset.
-
-        """
-        if self._dataset is None:
-            with open(self.DATA_FILE) as file:
-                reader = csv.reader(file)
+    def dataset(self) -> List[List]:
+        """Cached dataset"""
+        if self.__dataset is None:
+            with open(self.DATA_FILE) as f:
+                reader = csv.reader(f)
                 dataset = [row for row in reader]
-            self._dataset = dataset[1:]  # Skip the header row
-        return self._dataset
+            self.__dataset = dataset[1:]
 
-    def get_page(self, page_number: int = 1, page_size: int = 10) -> List[List]:
-        """
-        Retrieves the requested page from the dataset.
+        return self.__dataset
 
-        Args:
-            page_number (int): The page number to retrieve (1-indexed).
-            page_size (int): The number of records per page.
+    def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
+        """get a page list using page num and page_size"""
+        assert isinstance(page, int) and page > 0
+        assert isinstance(page_size, int) and page_size > 0
 
-        Returns:
-            List[List]: The data corresponding to the requested page.
+        (start, end) = index_range(page, page_size)
 
-        Raises:
-            AssertionError: If page_number or page_size is not a positive integer.
-
-        """
-        assert isinstance(page_number, int) and page_number > 0, "Page number must be a positive integer."
-        assert isinstance(page_size, int) and page_size > 0, "Page size must be a positive integer."
-
-        dataset = self._load_dataset()
-        data_length = len(dataset)
-        try:
-            start_index, end_index = calculate_index_range(page_number, page_size)
-            return dataset[start_index:end_index]
-        except IndexError:
-            return []
+        return self.dataset()[start:end]
