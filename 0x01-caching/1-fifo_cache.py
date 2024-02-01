@@ -1,22 +1,31 @@
 #!/usr/bin/python3
 """
-FIFOCache module
+LIFOCache module
 """
 
 BaseCaching = __import__("base_caching").BaseCaching
 
 
-class FIFOCache(BaseCaching):
-    """FIFOCache class"""
+class LIFOCache(BaseCaching):
+    """LIFOCache class"""
+
+    def __init__(self):
+        super().__init__()
+        self._last_key = None
 
     def put(self, key, item):
         """Add an item in the cache"""
         if key is not None and item is not None:
-            self.cache_data[key] = item
-            if len(self.cache_data) > self.MAX_ITEMS:
-                discarded_key = sorted(self.cache_data.keys())[0]
+            if (
+                len(self.cache_data) == self.MAX_ITEMS
+                and key not in self.cache_data.keys()
+            ):
+                discarded_key = self._last_key
                 del self.cache_data[discarded_key]
                 print(f"DISCARD: {discarded_key}")
+
+            self.cache_data[key] = item
+            self._last_key = key
 
     def get(self, key):
         """Get an item by key"""
